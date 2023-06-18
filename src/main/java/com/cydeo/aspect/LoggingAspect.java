@@ -1,9 +1,7 @@
 package com.cydeo.aspect;
 
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.keycloak.adapters.springsecurity.account.SimpleKeycloakAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,5 +30,18 @@ public class LoggingAspect {
         String username = getUserName();
         log.info("Before () -> User : {} - Method: {} - Parameters: {}", username, joinPoint.getSignature().toShortString(), joinPoint.getArgs());
     }
+
+    @AfterReturning(pointcut = "anyControllerOperation()", returning = "results")
+    public void anyAfterControllerOperationAdvice(JoinPoint joinPoint, Object results) {
+        String username = getUserName();
+        log.info("AfterReturning  -> User : {} - Method : {} - Results: {}", username, joinPoint.getSignature().toShortString(), results.toString());
+    }
+
+    @AfterThrowing(pointcut = "anyControllerOperation()", throwing = "exception")
+    public void anyAfterThrowingControllerOperationAdvice(JoinPoint joinPoint, RuntimeException exception) {
+        String username = getUserName();
+        log.info("AfterThrowing  -> User : {} - Method : {} - Exception: {}", username, joinPoint.getSignature().toShortString(), exception.getMessage());
+    }
+
 
 }
