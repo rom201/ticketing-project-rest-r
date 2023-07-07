@@ -1,6 +1,7 @@
 package com.cydeo.controller;
 
 import com.cydeo.dto.ProjectDTO;
+import com.cydeo.dto.ResponseDTO;
 import com.cydeo.dto.RoleDTO;
 import com.cydeo.dto.UserDTO;
 import com.cydeo.enums.Gender;
@@ -13,10 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 
@@ -38,7 +42,7 @@ class ProjectControllerTest {
     @BeforeAll
     static void setUp(){
 
-        token = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJDRjVDS2JtNl9JaEdGbmc1LXIyTjczVHJ2cFo1azB1TXZsazZVTEk3dlVBIn0.eyJleHAiOjE2ODg2OTM0NzIsImlhdCI6MTY4ODY5MzE3MiwianRpIjoiN2MwYmQ0NzUtNjk3ZS00NWFhLTkwM2MtM2Q5MzAyYzYxM2Y5IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2F1dGgvcmVhbG1zL2N5ZGVvLWRldiIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI4NzM5MTE1My04OGI3LTRlMDMtODRjNy0yNDM1M2YwNTBjNDciLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ0aWNrZXRpbmctYXBwIiwic2Vzc2lvbl9zdGF0ZSI6IjQ0MmVkNWVhLTA1N2ItNDRjMC1iN2U1LTcyZGMwNjFhYzc3MiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDgxIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsImRlZmF1bHQtcm9sZXMtY3lkZW8tZGV2IiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJ0aWNrZXRpbmctYXBwIjp7InJvbGVzIjpbIk1hbmFnZXIiXX0sImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwiLCJzaWQiOiI0NDJlZDVlYS0wNTdiLTQ0YzAtYjdlNS03MmRjMDYxYWM3NzIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicHJlZmVycmVkX3VzZXJuYW1lIjoibWlrZSJ9.BTO8wx8J1kKYzCAMwXeJRf_Of4SzQlGT90aRQDS-MbTbFbu-eLiA5rCYNrQG32LZ6vJpgaTZvz4XHcbeZipkkcMxn1UEYa57gqRJaZxtrasmXNMDYTCOLJfAiOGJP-aY2DVhzoL7QSlJoLIwuJFQoNsR0SHZ4xPhMaIcKLvNECVeVFm9yZ82XTbDWmJm8x3oyHRyDqYoTsOp1joQ5uLveDOAo7Q4FtOVgYklHs7VDid-uqMio_m2afibMI-HkryTTktGH3dt-ZBSm-JFlU2GyJbPkYoEG9bgU-RLLPy2GR3NTbe5gxjwJB-p6CvF2CmUIH6YU3F1cPgbZHbGS8AexA";
+        token = "Bearer "+makeRequest();
 
 
         userDTO = UserDTO.builder()
@@ -126,11 +130,6 @@ class ProjectControllerTest {
     }
 
 
-
-
-
-
-
     private static String toJsonString(final Object obj) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -142,7 +141,36 @@ class ProjectControllerTest {
         }
     }
 
+    private static String makeRequest() {
 
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("grant_type", "password");
+        map.add("client_id", "ticketing-app");
+        map.add("client_secret", "Yo5b66Y2Mw19wOoxNPl2WisFGQ93FUbh");
+        map.add("username", "mike");
+        map.add("password", "adm1");
+        map.add("scope", "openid");
+
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
+
+        ResponseEntity<ResponseDTO> response =
+                restTemplate.exchange("http://localhost:8080/auth/realms/cydeo-dev/protocol/openid-connect/token",
+                        HttpMethod.POST,
+                        entity,
+                        ResponseDTO.class);
+
+        if (response.getBody() != null) {
+            return response.getBody().getAccess_token();
+        }
+
+        return "";
+
+    }
 
 
 
